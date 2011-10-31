@@ -28,6 +28,21 @@ trait LiteralFunProg { this: JS =>
   }
 }
 
+trait StructProg { this: JS with JSStruct =>
+  def test(x: Rep[Int]): Rep[Int] = {
+    val o = new JSStruct {
+      var a = x
+      val i = a
+      val f = fun { () => a = a+i }
+    }
+    val f = o.f
+    f()
+    f()
+    f()
+    o.a
+  }
+}
+
 class TestLiteral extends FileDiffSuite {
   val prefix = "test-out/"
   
