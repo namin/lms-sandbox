@@ -1,6 +1,7 @@
 package scala.js
 
 import scala.virtualization.lms.common._
+import scala.reflect.mirror._
 
 import java.io.PrintWriter
 
@@ -43,7 +44,7 @@ trait JSTraitsExp extends JSTraits with JSProxyExp {
       case None => ()
     }
 
-    val implClazz = Class.forName(traitClazz.getName + "$class")
+    val implClazz = classToSymbol(Class.forName(traitClazz.getName + "$class"))
     val parents = traitClazz.getInterfaces.filter(_ != implicitly[Manifest[scala.ScalaObject]].erasure)
     assert (parents.length < 2, "Only single inheritance is supported.")
     val parentConstructor = if (parents.length == 0) None else Some(registerInternal[AnyRef](outer)(Manifest.classType(parents(0))))
@@ -51,12 +52,13 @@ trait JSTraitsExp extends JSTraits with JSProxyExp {
 
     val self = proxyTrait[T](This[T](), outer)
     val methods = 
-      for (method <- implClazz.getDeclaredMethods.toList)
+      for (method <- implClazz.companionModule.info.decls.toList)
 	yield {
-	  val n = method.getParameterTypes.length
+	  val MethodType(paramSymbols, resultType) = method.info
+	  val n = paramSymbols.length
 	  val params = (1 to (n-1)).toList.map(_ => fresh[Any])
 	  val args = (self::params).toArray
-	  MethodTemplate(method.getName, params, reifyEffects(method.invoke(null, args: _*).asInstanceOf[Exp[Any]]))
+	  MethodTemplate(method.encodedName, params, reifyEffects(invoke(null, method, args: _*).asInstanceOf[Exp[Any]]))
 	}
 
     val constructor = ClassTemplate[T](parent, methods) : Exp[Constructor[T]]
