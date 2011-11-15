@@ -3,6 +3,7 @@ package scala.js
 import scala.virtualization.lms.common._
 
 import java.lang.{reflect => jreflect}
+import scala.reflect.mirror._
 
 import java.io.PrintWriter
 
@@ -44,22 +45,12 @@ trait JSProxyExp extends JSProxyBase with BaseExp with EffectExp {
       assert(args == null || args.forall(_.isInstanceOf[Exp[_]]), "At the moment only Exps can be passed as arguments.")
       val args_ : Array[Exp[Any]] = if (args == null) Array.empty else args.map(_.asInstanceOf[Exp[Any]])
 
-      // For now, we can only detect field access for vars, as we rely
-      // on the existence of the update method.  For vals, Java
-      // reflection gives us no way to distinguish abstract vals from
-      // 0-argument methods.
-      def isFieldAccess: Boolean = {
-	if (args != null) return false
+      def isFieldAccess: Boolean = args_.length == 0 && (methodToSymbol(m).info match {
+	case NullaryMethodType(resultType) => true
+	case MethodType(params, resultType) => false
+      })
 
-	try {
-	  m.getDeclaringClass.getMethod(updateMethodFromField(m.getName), m.getReturnType)
-	  return true
-	} catch {
-	  case _ : NoSuchMethodException => return false
-	}
-      }
-
-      def isFieldUpdate: Boolean =  isFieldUpdateMethod(m.getName) && args_.length == 1
+      def isFieldUpdate: Boolean = isFieldUpdateMethod(m.getName) && args_.length == 1
 
       if (m.getName.endsWith("$$$outer")) outer
       else if (m.getName.contains("$$super$")) {
@@ -76,6 +67,12 @@ trait JSProxyExp extends JSProxyBase with BaseExp with EffectExp {
     }
   }
 
+  private def methodToSymbol(m: jreflect.Method): Symbol = {
+    val ClassInfoType(_, decls, _) = classToSymbol(m.getDeclaringClass).info
+    val jname = m.getName
+    //TODO: handle overloaded defs
+    decls.find(_.encodedName == jname).get
+  }
 }
 
 trait JSGenProxy extends JSGenBase with JSGenEffect {
