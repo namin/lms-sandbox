@@ -14,9 +14,9 @@ trait JSStruct extends Base with EmbeddedControls {
     def selectDynamic[T](field: String): Rep[T]
     def applyDynamic(field: String) = new UpdateOps(field)
     class UpdateOps(field: String) {
-      def update(value: Rep[Any]) = updateDynamic(field, value)
+      def update(value: Rep[Any]) = updateDynamic(field)(value)
     }
-    def updateDynamic(field: String, value: Rep[Any]): Unit
+    def updateDynamic[T](field: String)(value: Rep[Any]): Unit
   }
   implicit def jsStructOps(receiver: Rep[JSStruct]): JSStructOps
 
@@ -52,14 +52,14 @@ trait JSStructExp extends JSStruct with EffectExp {
   class SelfOps(receiver: Self) extends JSStructOps {
     def selectDynamic[T](field: String): Exp[T] =
       reflectEffect(ReadVar(receiver(field))).asInstanceOf[Exp[T]]
-    def updateDynamic(field: String, value: Exp[Any]): Unit =
+    def updateDynamic[T](field: String)(value: Exp[Any]): Unit =
       reflectEffect(MemberUpdate(receiver, field, value))
   }
 
   class JSStructOpsImpl(val receiver: Exp[JSStruct]) extends JSStructOps {
     def selectDynamic[T](field: String): Exp[T] =
       reflectEffect(ReadVar((MemberSelect(receiver, field)))).asInstanceOf[Exp[T]]
-    def updateDynamic(field: String, value: Exp[Any]): Unit =
+    def updateDynamic[T](field: String)(value: Exp[Any]): Unit =
       reflectEffect(MemberUpdate(receiver, field, value))
   }
   implicit def jsStructOps(receiver: Exp[JSStruct]): JSStructOps = receiver match {
