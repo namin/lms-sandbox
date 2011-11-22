@@ -52,7 +52,7 @@ trait JSTraitsExp extends JSTraits with JSProxyExp {
 
     val self = proxyTrait[T](This[T](), outer)
     val methods = 
-      for (method <- implClazz.companionModule.info.decls.toList)
+      for (method <- implClazz.companionModule.info.allDeclarations.toList)
 	yield {
 	  val MethodType(paramSymbols, resultType) = method.info
 	  val n = paramSymbols.length
