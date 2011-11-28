@@ -32,7 +32,7 @@ libraryDependencies ++= Seq(
     
 //--- End of Dependencies
 
-scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xexperimental")
+scalacOptions ++= Seq("-deprecation", "-unchecked", "-Xexperimental", "-Xprint:typer,namer")
 
 //Our tests are not threadsafe so disabling parallel execution for now
 parallelExecution in Test := false
