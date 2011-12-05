@@ -4,7 +4,7 @@ import scala.virtualization.lms.common._
 
 import java.io.PrintWriter
 
-trait MiceApi extends JSProxyBase with JSLiteral {
+trait MiceApi extends JSLib {
   val document: Rep[Any]
   val window: Rep[Any]
 
@@ -20,13 +20,6 @@ trait MiceApi extends JSProxyBase with JSLiteral {
   type MoveLiteral = JSLiteral {val id: String; val cx: Int; val cy: Int; val w: Int; val h: Int; val color: String}
 
   def currentTime(): Rep[Int]
-
-  val json: Rep[JSON]
-  trait JSON {
-    def stringify(literal: Rep[JSLiteral]): Rep[String]
-    def parse[T <: JSLiteral](data: Rep[String]): Rep[T]
-  }
-  implicit def repToJSON(x: Rep[JSON]): JSON = repProxy[JSON](x)
 
   def jQuery(x: Rep[Any]): Rep[JQuery]
   trait JQuery {
@@ -44,7 +37,7 @@ trait MiceApi extends JSProxyBase with JSLiteral {
   type JQueryEvent = JSLiteral {val pageX: Int; val pageY: Int}
 }
 
-trait MiceApiExp extends MiceApi with JSProxyExp with JSLiteralExp {
+trait MiceApiExp extends MiceApi with JSLibExp {
   case object DocumentVar extends Exp[Any]
   val document = DocumentVar
 
@@ -57,21 +50,17 @@ trait MiceApiExp extends MiceApi with JSProxyExp with JSLiteralExp {
   case object CurrentTime extends Def[Int]
   def currentTime() = reflectEffect(CurrentTime)
 
-  case object JSONVar extends Exp[JSON]
-  val json = JSONVar
-
   case class JQueryCall(x: Exp[Any]) extends Def[JQuery]
   def jQuery(x: Exp[Any]) = JQueryCall(x)
 }
 
-trait JSGenMiceApi extends JSGenProxy with JSGenLiteral {
+trait JSGenMiceApi extends JSGenLib {
   val IR: MiceApiExp
   import IR._
 
   override def quote(x: Exp[Any]) : String = x match {
     case DocumentVar => "document"
     case WindowVar => "window"
-    case JSONVar => "JSON"
     case _ => super.quote(x)
   }
 
