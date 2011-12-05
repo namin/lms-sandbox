@@ -6,7 +6,6 @@ import java.io.PrintWriter
 
 trait MiceApi extends JSLib {
   val document: Rep[Any]
-  val window: Rep[Any]
 
   type DataLiteral = JSLiteral {val data : String}
   def initWebSocket(): Rep[WebSocket]
@@ -41,9 +40,6 @@ trait MiceApiExp extends MiceApi with JSLibExp {
   case object DocumentVar extends Exp[Any]
   val document = DocumentVar
 
-  case object WindowVar extends Exp[Any]
-  val window = WindowVar
-
   case object InitWebSocket extends Def[WebSocket]
   def initWebSocket() = reflectEffect(InitWebSocket)
 
@@ -60,7 +56,6 @@ trait JSGenMiceApi extends JSGenLib {
 
   override def quote(x: Exp[Any]) : String = x match {
     case DocumentVar => "document"
-    case WindowVar => "window"
     case _ => super.quote(x)
   }
 
