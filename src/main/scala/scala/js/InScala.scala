@@ -183,7 +183,8 @@ trait TupleOpsInScala extends TupleOps with InScala {
 }
 
 trait JSProxyInScala extends JSProxyBase with InScala {
-  def repProxy[T<:AnyRef](x: Rep[T])(implicit m: Manifest[T]): T = x
+  def repProxy[T,Ops<:AnyRef](x: Rep[T])(implicit m: Manifest[Ops]): Ops =
+    x.asInstanceOf[Ops]
 }
 
 trait JSTraitsInScala extends JSTraits with JSProxyInScala {
@@ -245,13 +246,13 @@ trait DomsInScala extends Doms with JSProxyInScala {
     strokes.push(strokeWidth)
   }
 
-  class ElementInScala extends Element {
+  class ElementInScala extends Element with ElementOps {
     def getElementById(id: String) : ElementInScala = new CanvasInScala
   }
-  class CanvasInScala extends ElementInScala with Canvas {
+  class CanvasInScala extends ElementInScala with Canvas with CanvasOps {
     def getContext(context: String) : ContextInScala = new ContextInScala
   }
-  class ContextInScala extends Context {
+  class ContextInScala extends Context with ContextOps {
     def save(): Unit = {
       transforms.push(graphics.getTransform)
       saveStroke()

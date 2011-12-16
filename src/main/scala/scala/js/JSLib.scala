@@ -4,18 +4,21 @@ import scala.virtualization.lms.common._
 
 trait JSLib extends JSProxyBase with JSLiteral {
   val window: Rep[Window]
-  trait Window {
+  trait Window
+  trait WindowOps {
     def setTimeout(func: Rep[Unit => Unit], delay: Rep[Int]): Rep[Int]
   }
-  implicit def repToWindow(x: Rep[Window]): Window = repProxy[Window](x)
+  implicit def repToWindowOps(x: Rep[Window]): WindowOps =
+    repProxy[Window,WindowOps](x)
 
   val json: Rep[JSON]
-  trait JSON {
+  trait JSON
+  trait JSONOps {
     def stringify(literal: Rep[JSLiteral]): Rep[String]
     def parse[T <: JSLiteral](data: Rep[String]): Rep[T]
   }
-  implicit def repToJSON(x: Rep[JSON]): JSON = repProxy[JSON](x)
-
+  implicit def repToJSONOps(x: Rep[JSON]): JSONOps =
+    repProxy[JSON,JSONOps](x)
 }
 
 trait JSLibExp extends JSLib with JSProxyExp with JSLiteralExp {

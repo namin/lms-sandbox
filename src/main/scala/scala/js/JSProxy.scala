@@ -7,7 +7,7 @@ import java.lang.{reflect => jreflect}
 import java.io.PrintWriter
 
 trait JSProxyBase extends Base {
-  def repProxy[T<:AnyRef](x: Rep[T])(implicit m: Manifest[T]): T
+  def repProxy[T,Ops<:AnyRef](x: Rep[T])(implicit m: Manifest[Ops]): Ops
 }
 
 trait JSProxyExp extends JSProxyBase with BaseExp with EffectExp {
@@ -17,19 +17,19 @@ trait JSProxyExp extends JSProxyBase with BaseExp with EffectExp {
   case class FieldAccess[T](receiver: Exp[Any], field: String) extends Def[T]
   case class FieldUpdate(receiver: Exp[Any], field: String, value: Exp[Any]) extends Def[Unit]
 
-  def repProxy[T<:AnyRef](x: Rep[T])(implicit m: Manifest[T]): T = {
-    proxy[T](x, null)(m)
+  def repProxy[T,Ops<:AnyRef](x: Rep[T])(implicit m: Manifest[Ops]): Ops = {
+    proxy[T,Ops](x, null)(m)
   }
 
   def proxyTrait[T<:AnyRef](x: Rep[T], outer: AnyRef)(implicit m: Manifest[T]): T = {
-    proxy[T](x, outer)(m)
+    proxy[T,T](x, outer)(m)
   }
 
-  def proxy[T<:AnyRef](x: Rep[T], outer: AnyRef)(implicit m: Manifest[T]): T = {
+  def proxy[T,Ops<:AnyRef](x: Rep[T], outer: AnyRef)(implicit m: Manifest[Ops]): Ops = {
     val clazz = m.erasure
     val handler = new JSInvocationHandler(x, outer)
     val proxy = jreflect.Proxy.newProxyInstance(clazz.getClassLoader(), Array(clazz), handler)
-    proxy.asInstanceOf[T]
+    proxy.asInstanceOf[Ops]
   }
 
   class JSInvocationHandler(receiver: Exp[Any], outer: AnyRef) extends jreflect.InvocationHandler with java.io.Serializable {

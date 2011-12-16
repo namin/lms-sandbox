@@ -3,13 +3,16 @@ package scala.js
 import scala.virtualization.lms.common._
 
 trait Doms extends JSProxyBase {
-  trait Element {
+  trait Element
+  trait ElementOps {
     def getElementById(id: Rep[String]): Rep[Element]
   }
-  trait Canvas extends Element {
+  trait Canvas extends Element
+  trait CanvasOps extends ElementOps {
     def getContext(context: Rep[String]): Rep[Context]
   }
-  trait Context {
+  trait Context
+  trait ContextOps {
     def save(): Rep[Unit]
     def lineTo(x: Rep[Int], y: Rep[Int]): Rep[Unit]
     def scale(x1: Rep[Double], x2: Rep[Double]): Rep[Unit]
@@ -24,9 +27,9 @@ trait Doms extends JSProxyBase {
     def as[T]: Rep[T]
   }
   val document: Rep[Element]
-  implicit def repToElement(x: Rep[Element]): Element = repProxy[Element](x)
-  implicit def repToCanvas(x: Rep[Canvas]): Canvas = repProxy[Canvas](x)
-  implicit def repToContext(x: Rep[Context]): Context = repProxy[Context](x)
+  implicit def repToElementOps(x: Rep[Element]): ElementOps = repProxy[Element,ElementOps](x)
+  implicit def repTocanvasOps(x: Rep[Canvas]): CanvasOps = repProxy[Canvas,CanvasOps](x)
+  implicit def repToContextOps(x: Rep[Context]): ContextOps = repProxy[Context,ContextOps](x)
   implicit def asRep(x: Rep[_]): AsRep = new AsRep {
     def as[T]: Rep[T] = x.asInstanceOf[Rep[T]]
   }
