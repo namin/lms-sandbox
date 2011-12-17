@@ -53,22 +53,22 @@ trait CPS extends JS with LiftVariables with JSProxyBase {
     rec()
   }
   
-  class DataFlowCell[A: Manifest](cell: CellOps[A]) extends java.io.Serializable {
+  class RichCell[A: Manifest](cell: Rep[Cell[A]]) extends java.io.Serializable {
     def apply() = shift { k: (Rep[A] => Rep[Unit]) =>
       cell.get(fun(k))
     }
-    def set(v: Rep[A]): Rep[Unit] = cell.set(v)
   }
-  
-  implicit def pimpCell[A:Manifest](x: Rep[Cell[A]]): DataFlowCell[A] =
-    new DataFlowCell(repProxy[Cell[A],CellOps[A]](x))
+  implicit def pimpCell[A:Manifest](x: Rep[Cell[A]]): RichCell[A] =
+    new RichCell(x)
   
   def createCell[A: Manifest](): Rep[Cell[A]]
   trait Cell[A]
   trait CellOps[A] {
     def get(k: Rep[A => Unit]): Rep[Unit]
     def set(v: Rep[A]): Rep[Unit]
-  }  
+  }
+  implicit def repToCellOps[A:Manifest](x: Rep[Cell[A]]): CellOps[A] =
+    repProxy[Cell[A],CellOps[A]](x)
 }
 
 trait CPSExp extends CPS with JSProxyExp {
