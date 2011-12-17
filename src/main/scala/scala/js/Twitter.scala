@@ -8,6 +8,7 @@ import java.io.PrintWriter
 import Predef.{any2stringadd => _, _}
 
 trait TwitterApi extends JS with JSLib with CPS with Ajax with JSDebug {
+  type TwitterResponse = Array[JSLiteral { val text: String }]
   def append(loc: Rep[String], html: Rep[String]): Rep[Unit]
 }
 
@@ -34,7 +35,7 @@ object Twitter {
       for (user <- array("gkossakowski", "odersky", "adriaanm").parSuspendable) {
         log("fetching " + user)
         append("#jstwitter", string_plus("<div class='span-one-third'><h4>@", string_plus(user, string_plus("</h4><ul id='", string_plus(user, "'></ul></div>")))))
-        val data = ajax.get {
+        val data = ajax.get[TwitterResponse] {
           new JSLiteral {
             val url = "http://api.twitter.com/1/statuses/user_timeline.json"
             val `type` = "GET"

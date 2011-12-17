@@ -14,24 +14,22 @@ trait Ajax extends JS with CPS {
     val data: JSLiteral
   }
 
-  type Response = Array[JSLiteral { val text: String }]
-
   val ajax = new AjaxOps
   
   class AjaxOps {
-    def get(request: Rep[Request]): Rep[Response] @suspendable =
-      ajax_get(request)
+    def get[Response:Manifest](request: Rep[Request]): Rep[Response] @suspendable =
+      ajax_get[Response](request)
   }
 
-  def ajax_get(request: Rep[Request]): Rep[Response] @suspendable
+  def ajax_get[Response:Manifest](request: Rep[Request]): Rep[Response] @suspendable
 
 }
 
 trait AjaxExp extends JSExp with Ajax {
   
-  case class AjaxGet(request: Rep[Request], success: Rep[Response => Unit]) extends Def[Unit]
+  case class AjaxGet[Response:Manifest](request: Rep[Request], success: Rep[Response => Unit]) extends Def[Unit]
   
-  def ajax_get(request: Rep[Request]): Rep[Response] @suspendable = shift { k =>
+  def ajax_get[Response:Manifest](request: Rep[Request]): Rep[Response] @suspendable = shift { k =>
     reflectEffect(AjaxGet(request, fun(k)))
   }
 

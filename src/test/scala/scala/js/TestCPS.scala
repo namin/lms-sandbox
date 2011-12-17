@@ -60,10 +60,12 @@ trait CPSProg { this: JS with JSDebug with JSLib with CPS with Ajax =>
     log("done")
   }
   
+  type TwitterResponse = Array[JSLiteral { val text: String }]
+
   def test4(x: Rep[Int]): Rep[Unit] = reset {
     for (user <- array("gkossakowski", "odersky", "adriaanm").parSuspendable) {
       log("fetching " + user)
-      val data = ajax.get {
+      val data = ajax.get[TwitterResponse] {
         new JSLiteral {
           val url = "http://api.twitter.com/1/statuses/user_timeline.json"
           val `type` = "GET"
